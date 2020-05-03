@@ -78,7 +78,8 @@ function love.update(dt)
     timer = 0
     clear()
     movement()
-    applegen()
+    snake.head_ypos = snake_seg[1][1]
+    snake.head_xpos = snake_seg[1][2]
   end
 end
 
@@ -93,39 +94,58 @@ function movement()
     love.event.quit()
   end
   
+  -- If Snake head has the same coordinates as any of the snake body tiles, end game
+  for item = 2, #snake_seg do
+    if (snake_seg[1][1] == snake_seg[item][1]) and (snake_seg[1][2] == snake_seg[item][2]) then
+      love.event.quit()
+    end
+  end
     
-  -- Assign one to current snake head cordinates 
-  tilemap[snake.head_ypos][snake.head_xpos] = 1
   
-  --Assign two to snake body cordinates
-  --for item in snake.snake_seg do
-  --  tilemap[snake_seg[1]][snake_seg[2]] = 2
-  --end
+    
+    --Assign one to snake body cordinates
+  for item = 1, #snake_seg do
+    tilemap[snake_seg[item][1]][snake_seg[item][2]] = 1
+  end
+  
+  --snake_seg = {{snake.head_ypos, snake.head_xpos, direction}}
 
+  for item = 1, #snake_seg do
+    --Right movement
+    if snake_seg[item][3] == 1 then
+      snake_seg[item][2] = snake_seg[item][2] + 1
+    end
   
-  --Left movement
-  if direction == 1 then
-    snake.head_xpos = snake.head_xpos + 1 
+    --Left movement
+    if snake_seg[item][3] == 2 then
+      snake_seg[item][2] = snake_seg[item][2] - 1
+    end
+  
+    --Up movement 
+    if snake_seg[item][3] == 3 then
+      snake_seg[item][1] = snake_seg[item][1] - 1
+    end
+  
+    --Down movement
+    if snake_seg[item][3] == 4 then 
+      snake_seg[item][1] = snake_seg[item][1] + 1
+    end
   end
-  
-  --Right movement
-  if direction == 2 then
-    snake.head_xpos = snake.head_xpos - 1
+
+  if #snake_seg > 1 then
+      update_direction()
   end
+  applegen()
   
-  --Up movement 
-  if direction == 3 then
-    snake.head_ypos = snake.head_ypos - 1
-  end
   
-  --Down movement
-  if direction == 4 then 
-    snake.head_ypos = snake.head_ypos + 1
-  end
-  
-  --for item in snake["snake_seg"] do
-    
 end
+
+function update_direction()
+  for item = #snake_seg,2 ,-1  do
+    snake_seg[item][3] = snake_seg[item-1][3]
+  end
+end
+
 
 function clear()
   -- Clear function, sets all tilemap values to zero 
@@ -144,18 +164,22 @@ function love.keypressed(key)
   -- Assigns direction value based on key pressed 
   if key == "d" then 
     direction = 1
+    snake_seg[1][3] = 1
   end
   
   if key == "a" then 
     direction = 2
+    snake_seg[1][3] = 2
   end
   
   if key == "w" then
     direction = 3 
+    snake_seg[1][3] = 3
   end
   
   if key == "s" then 
      direction = 4
+     snake_seg[1][3] = 4
   end 
 end
 
@@ -169,8 +193,6 @@ function apple()
     tilemap[ypos][xpos] = 3
   end
   
-  --Call growth function
- -- growth()
   
 end
 
@@ -186,23 +208,51 @@ function applegen()
   end
   if apple_exists == 0 then 
     apple()
+    growth()
+  end
+  
+end
+
+
+function growth()
+  --add cordinates and direction of snake head at the time of function call and store them in snake_seg
+  if #snake_seg > 1 then
+    
+    --Left movement
+    if snake_seg[#snake_seg][3] == 1 then
+      table.insert(snake_seg, {snake_seg[#snake_seg][1], snake_seg[#snake_seg][2]-1, snake_seg[#snake_seg][3]})
+    end
+  
+    --Right movement
+    if snake_seg[#snake_seg][3] == 2 then
+      table.insert(snake_seg, {snake_seg[#snake_seg][1], snake_seg[#snake_seg][2]+1, snake_seg[#snake_seg][3]})
+    end
+  
+    --Up movement 
+    if snake_seg[#snake_seg][3] == 3 then
+      table.insert(snake_seg, {snake_seg[#snake_seg][1]+1, snake_seg[#snake_seg][2], snake_seg[#snake_seg][3]})
+    end
+  
+    --Down movement
+    if snake_seg[#snake_seg][3] == 4 then 
+      table.insert(snake_seg, {snake_seg[#snake_seg][1]-1, snake_seg[#snake_seg][2], snake_seg[#snake_seg][3]})
+    end
+    
+    
+  else
+    table.insert(snake_seg, {snake.head_ypos, snake.head_xpos, direction})
   end
 end
 
 
---function growth()
-  --Add cordinates and direction of snake head at the time of cuntion call and store them in snake_seg
-  --table.insert(snake["snake_seg"], {snake.head_ypos, snake.head_xpos, direction})
-
---end
-
---[[
-TODO
 
 
-3. Implement snake growth
-  -snake body
-  -snake body movement 
+--TODO
+
+
+--3. Implement snake growth
+ -- -snake body
+  ---snake body movement 
 
 
 
